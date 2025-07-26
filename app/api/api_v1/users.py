@@ -1,0 +1,40 @@
+from typing import Sequence
+
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.models import User
+from core.models.db_helper import db_helper
+from core.schemas.user import UserRead, UserCreate
+from crud import users as users_crud
+
+router = APIRouter(
+    tags=['Users']
+)
+
+@router.get('/users')
+async def get_users(
+    session: AsyncSession = Depends(db_helper.session_getter)
+):
+    users = await users_crud.get_all_users(session=session)
+    return users
+
+
+@router.post('/user', response_model=UserRead)
+async def create_user(
+        user_create: UserCreate,
+        session: AsyncSession = Depends(db_helper.session_getter),
+) :
+    user = await users_crud.create_user(session=session, user_create=user_create)
+    return user
+
+
+@router.post('/user/{user_id}')
+async def get_user_by_id(
+        user_id: int,
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    return users_crud.get_user_by_id(session=session, user_id=user_id)
+
+
