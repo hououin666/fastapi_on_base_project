@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.db_helper import db_helper
+from core.schemas.post import PostUser
 from crud import posts as posts_crud
 
 router = APIRouter(
@@ -16,7 +17,7 @@ async def get_all_posts(
     pass
 
 
-@router.post('/post')
+@router.post('/post', response_model=PostUser)
 async def create_post(
         user_id: int,
         title: str,
