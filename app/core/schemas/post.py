@@ -7,4 +7,5 @@ class Post(BaseModel):
 
 
 class PostUser(Post):
+    id: int
     user_id: int
