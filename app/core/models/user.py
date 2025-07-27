@@ -19,5 +19,5 @@ class User(Base):
     email: Mapped[str | None] = None
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     profile: Mapped['Profile'] = relationship(
-        back_populates='user'
+        back_populates='user',
     )

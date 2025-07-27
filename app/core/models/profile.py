@@ -16,9 +16,7 @@ class Profile(Base):
     first_name: Mapped[str]
     last_name: Mapped[str]
 
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey('users.id'),
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True)
     user: Mapped['User'] = relationship(
-        back_populates='profile'
+        back_populates='profile',
 )
