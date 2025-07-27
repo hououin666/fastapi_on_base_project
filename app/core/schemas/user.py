@@ -1,12 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
-class UserBase(BaseModel):
+class UserSchema(BaseModel):
     username: str
     password: str
+    email: EmailStr | None = None
+    active: bool = True
 
-class UserCreate(UserBase):
+
+class UserCreate(UserSchema):
     pass
 
-class UserRead(UserBase):
+class UserRead(UserSchema):
     pass
