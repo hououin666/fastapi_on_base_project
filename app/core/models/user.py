@@ -9,6 +9,7 @@ from core.models.base import Base
 
 if TYPE_CHECKING:
     from core.models import Profile
+    from .post import Post
 
 
 class User(Base):
@@ -20,4 +21,7 @@ class User(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     profile: Mapped['Profile'] = relationship(
         back_populates='user',
+    )
+    posts: Mapped['Post'] = relationship(
+        back_populates='user'
     )
