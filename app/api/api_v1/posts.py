@@ -12,9 +12,9 @@ router = APIRouter(
 
 @router.get('/posts')
 async def get_all_posts(
-
+    session: AsyncSession = Depends(db_helper.session_getter),
 ):
-    pass
+    return await posts_crud.get_all_posts(session=session)
 
 
 @router.post('/post', response_model=PostUser)
@@ -25,3 +25,11 @@ async def create_post(
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
     return await posts_crud.create_post(user_id=user_id, title=title, body=body, session=session,)
+
+
+@router.get('/posts/{user_id}')
+async def get_user_posts_by_user_id(
+        user_id: int,
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    return await posts_crud.get_user_posts_by_user_id(session=session, user_id=user_id)
