@@ -76,4 +76,10 @@ async def create_user_profile(
     return await users_crud.create_user_profile(session=session, user_id=user_id, first_name=first_name, last_name=last_name)
 
 
+@router.get('/user/profile/{user_id}', response_model=ProfileUser)
+async def get_user_profile_by_id(
+        user_id: int,
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    return await users_crud.get_user_profile_by_id(session=session,user_id=user_id)
 
