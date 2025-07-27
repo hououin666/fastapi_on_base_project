@@ -30,12 +30,30 @@ async def create_user(
     return user
 
 
-@router.post('/user/{user_id}', response_model=UserSchema)
+@router.get('/users/active',)
+async def get_active_users(
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    users = await users_crud.get_active_users(session=session)
+    return users
+
+
+@router.get('/user/{user_id}', response_model=UserSchema)
 async def get_user_by_id(
         user_id: int,
         session: AsyncSession = Depends(db_helper.session_getter)
 ) -> User:
     user = await users_crud.get_user_by_id(session=session, user_id=user_id)
     return user
+
+
+@router.get('/user/{user_id}/active', response_model=UserSchema)
+async def get_active_user_by_id(
+        user_id: int,
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    user = await users_crud.get_active_user_by_id(session=session, user_id=user_id)
+    return user
+
 
 

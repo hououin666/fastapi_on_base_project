@@ -56,3 +56,18 @@ async def get_active_users(
         status_code=HTTP_404_NOT_FOUND,
         detail=f'active users not found!'
     )
+
+
+async def get_active_user_by_id(
+        session: AsyncSession,
+        user_id: int,
+) -> User:
+    stmt = select(User).where(User.id==user_id, User.active==True)
+    result = await session.scalars(stmt)
+    user = result.one_or_none()
+    if user:
+        return user
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND,
+        detail=f'active user with user_id {user_id} not found!'
+    )
