@@ -14,7 +14,7 @@ class Post(Base):
 
     title: Mapped[str] = mapped_column(String(40))
     body: Mapped[str] = mapped_column(String(300))
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     user: Mapped['User'] = relationship(
         back_populates= 'posts'
     )
