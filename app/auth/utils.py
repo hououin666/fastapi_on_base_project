@@ -1,11 +1,13 @@
 import jwt
 import bcrypt
 
+from core.config import settings
+
 
 def encode_jwt(
-        payload,
-        private_key,
-        algorith,
+        payload: dict,
+        private_key = settings.auth.private_key_path,
+        algorithm = settings.auth.algorithm,
 ):
     encoded_jwt = jwt.encode(payload, private_key, algorithm="HS256")
     return encoded_jwt
@@ -13,8 +15,8 @@ def encode_jwt(
 
 def decode_jwt(
         token,
-        public_key,
-        algorithm,
+        public_key = settings.auth.public_key_path,
+        algorithm = settings.auth.algorithm,
 ):
     decoded_jwt = jwt.decode(token, public_key, algorithms=[algorithm])
     return decoded_jwt
