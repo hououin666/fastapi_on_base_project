@@ -1,10 +1,12 @@
 from typing import Sequence, Any, Type
 
+from asyncpg import UniqueViolationError
 from fastapi import HTTPException
 from fastapi.params import Depends
 from sqlalchemy import select, Row, RowMapping
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
 
 from core.models import User, Profile
 from core.models.db_helper import db_helper
@@ -94,11 +96,33 @@ async def create_user_profile(
         last_name: str,
         session: AsyncSession,
 ):
-    profile = Profile(
-        user_id=user_id,
-        first_name=first_name,
-        last_name=last_name
-                      )
-    session.add(profile)
-    await session.commit()
-    return profile
+    try:
+        profile = Profile(
+            user_id=user_id,
+            first_name=first_name,
+            last_name=last_name
+                          )
+        session.add(profile)
+        await session.commit()
+        return profile
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=f'profile for user with user_id {user_id} already exists!'
+        )
+
+
+
+async def get_user_profile_by_id(
+        user_id: int,
+        session: AsyncSession,
+):
+    stmt = select(Profile).where(Profile.user_id==user_id)
+    result = await session.scalars(stmt)
+    profile = result.one_or_none()
+    if profile:
+        return profile
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND,
+        detail=f'profile with user_id {user_id} not found!'
+    )
