@@ -6,7 +6,7 @@ from sqlalchemy import select, Row, RowMapping
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_404_NOT_FOUND
 
-from core.models import User
+from core.models import User, Profile
 from core.models.db_helper import db_helper
 from core.schemas.user import UserRead, UserCreate
 
@@ -86,3 +86,19 @@ async def get_user_by_username(
         status_code=HTTP_404_NOT_FOUND,
         detail=f'user with username {username} not found!'
     )
+
+
+async def create_user_profile(
+        user_id: int,
+        first_name: str,
+        last_name: str,
+        session: AsyncSession,
+):
+    profile = Profile(
+        user_id=user_id,
+        first_name=first_name,
+        last_name=last_name
+                      )
+    session.add(profile)
+    await session.commit()
+    return profile
