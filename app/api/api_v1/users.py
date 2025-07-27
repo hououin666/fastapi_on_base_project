@@ -1,6 +1,7 @@
-from typing import Sequence, Any, Type, Coroutine
+from typing import Sequence, Any, Type, Coroutine, Optional
 
 from fastapi import APIRouter, Depends
+from fastapi.params import Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,5 +56,12 @@ async def get_active_user_by_id(
     user = await users_crud.get_active_user_by_id(session=session, user_id=user_id)
     return user
 
+
+@router.get('/user-by-username/{username}')
+async def get_user_by_username(
+        username: str,
+        session: AsyncSession = Depends(db_helper.session_getter)
+):
+    return await users_crud.get_user_by_username(session=session, username=username)
 
 
