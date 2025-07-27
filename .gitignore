@@ -2,5 +2,5 @@ app/.env
 .env
 .idea/
 
-
+app/certs
 
