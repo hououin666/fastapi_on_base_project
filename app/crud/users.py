@@ -11,6 +11,7 @@ from starlette.status import HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
 from core.models import User, Profile
 from core.models.db_helper import db_helper
 from core.schemas.user import UserRead, UserCreate
+from auth import utils as auth_utils
 
 
 async def get_all_users(
@@ -25,7 +26,13 @@ async def create_user(
         session: AsyncSession,
         user_create: UserCreate,
 ) -> User:
-    user = User(**user_create.model_dump())
+    hash_pw = auth_utils.hashcode_pw(user_create.password)
+    user = User(
+        username=user_create.username,
+        password=hash_pw,
+        email=user_create.email,
+        active=user_create.active,
+    )
     session.add(user)
     await session.commit()
     return user
