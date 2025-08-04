@@ -3,13 +3,17 @@ from fastapi.params import Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
+from starlette.responses import Response
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
+
 
 from core.models import User
 from core.models.db_helper import db_helper
 from core.schemas.token import TokenInfo
 from core.schemas.user import UserSchema
 from auth import utils as auth_utils
+from crud.users import get_user_by_username, get_user_by_id
 
 router = APIRouter(
     tags=['JWT'],
@@ -17,7 +21,7 @@ router = APIRouter(
 )
 
 
-http_bearer = HTTPBearer()
+
 
 
 async def validate_user(
@@ -25,9 +29,7 @@ async def validate_user(
         username: str = Form(),
         password: str = Form(),
 ):
-    stmt = select(User).where(User.username==username)
-    result = await session.scalars(stmt)
-    user = result.one_or_none()
+    user = await get_user_by_username(username=username, session=session,)
     if user is None:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
@@ -43,7 +45,8 @@ async def validate_user(
 
 @router.post('/login')
 def auth_user_issue_jwt(
-        user: UserSchema = Depends(validate_user)
+        response: Response,
+        user: UserSchema = Depends(validate_user),
 ):
     jwt_payload = {
         'sub': str(user.id),
@@ -55,16 +58,21 @@ def auth_user_issue_jwt(
     token = auth_utils.encode_jwt(
         payload=jwt_payload,
     )
+    response.set_cookie(key='users_access_token', value=token, httponly=True)
     return TokenInfo(
         access_token=token,
-        token_type = 'Bearer'
     )
 
 
 def get_current_token_payload_user(
-    credentials: HTTPAuthorizationCredentials = Depends(http_bearer)
+    request: Request,
 ) -> dict:
-    token = credentials.credentials
+    token = request.cookies.get('users_access_token')
+    if not token:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail='token not found',
+        )
     payload = auth_utils.decode_jwt(token)
     return payload
 
@@ -73,9 +81,7 @@ async def get_current_auth_user(
         payload = Depends(get_current_token_payload_user),
         session: AsyncSession = Depends(db_helper.session_getter),
 ) -> User:
-    stmt = select(User).where(User.id==int(payload.get('sub')))
-    result = await session.scalars(stmt)
-    user = result.one_or_none()
+    user = await get_user_by_id(user_id=int(payload.get('sub')), session=session)
     if user:
         return user
     raise HTTPException(
