@@ -26,6 +26,12 @@ async def create_user(
         session: AsyncSession,
         user_create: UserCreate,
 ) -> User:
+    user_in_db = get_user_by_username(username=user_create.username, session=session)
+    if user_in_db:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail='user with this username already exist',
+        )
     hash_pw = auth_utils.hashcode_pw(user_create.password)
     user = User(
         username=user_create.username,
