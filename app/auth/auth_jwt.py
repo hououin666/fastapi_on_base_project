@@ -7,7 +7,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
-
+from auth.dependensies import validate_user, get_current_active_auth_user
 from core.models import User
 from core.models.db_helper import db_helper
 from core.schemas.token import TokenInfo
@@ -24,23 +24,7 @@ router = APIRouter(
 
 
 
-async def validate_user(
-        session: AsyncSession = Depends(db_helper.session_getter),
-        username: str = Form(),
-        password: str = Form(),
-):
-    user = await get_user_by_username(username=username, session=session,)
-    if user is None:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED,
-            detail='invalid username or password!'
-        )
-    if auth_utils.validate_passwords(password, user.password):
-        return user
-    raise HTTPException(
-        status_code=HTTP_401_UNAUTHORIZED,
-        detail='invalid username or password!'
-    )
+
 
 
 @router.post('/login')
@@ -62,46 +46,6 @@ def auth_user_issue_jwt(
     return TokenInfo(
         access_token=token,
     )
-
-
-def get_current_token_payload_user(
-    request: Request,
-) -> dict:
-    token = request.cookies.get('users_access_token')
-    if not token:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED,
-            detail='token not found',
-        )
-    payload = auth_utils.decode_jwt(token)
-    return payload
-
-
-async def get_current_auth_user(
-        payload = Depends(get_current_token_payload_user),
-        session: AsyncSession = Depends(db_helper.session_getter),
-) -> User:
-    user = await get_user_by_id(user_id=int(payload.get('sub')), session=session)
-    if user:
-        return user
-    raise HTTPException(
-        status_code=HTTP_401_UNAUTHORIZED,
-        detail='invalid token'
-    )
-
-
-
-
-def get_current_active_auth_user(
-        user: UserSchema = Depends(get_current_auth_user)
-):
-    if user.active:
-        return user
-    raise HTTPException(
-        HTTP_403_FORBIDDEN,
-        detail='user is not active'
-    )
-
 
 
 @router.get('/users/me')
