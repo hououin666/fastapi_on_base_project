@@ -5,6 +5,7 @@ from fastapi.params import Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.dependensies import get_current_admin_user
 from core.models import User
 from core.models.db_helper import db_helper
 from core.schemas.profile import ProfileUser
@@ -17,7 +18,8 @@ router = APIRouter(
 
 @router.get('/users')
 async def get_users(
-    session: AsyncSession = Depends(db_helper.session_getter)
+    session: AsyncSession = Depends(db_helper.session_getter),
+    user: User = Depends(get_current_admin_user),
 ):
     users = await users_crud.get_all_users(session=session)
     return users
@@ -66,20 +68,4 @@ async def get_user_by_username(
     return await users_crud.get_user_by_username(session=session, username=username)
 
 
-@router.post('/user/create-profile/{user_id}', response_model=ProfileUser)
-async def create_user_profile(
-        user_id: int,
-        first_name: str,
-        last_name: str,
-        session: AsyncSession = Depends(db_helper.session_getter)
-):
-    return await users_crud.create_user_profile(session=session, user_id=user_id, first_name=first_name, last_name=last_name)
-
-
-@router.get('/user/profile/{user_id}', response_model=ProfileUser)
-async def get_user_profile_by_id(
-        user_id: int,
-        session: AsyncSession = Depends(db_helper.session_getter)
-):
-    return await users_crud.get_user_profile_by_id(session=session,user_id=user_id)
 
