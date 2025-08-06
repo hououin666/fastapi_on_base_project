@@ -3,11 +3,13 @@ __all__ = (
     'User',
     'Profile',
     'Post',
-
+    'Role',
 )
 
 from .base import Base
 from .user import User
 from .profile import Profile
 from .post import Post
+from .role import Role
+
 
