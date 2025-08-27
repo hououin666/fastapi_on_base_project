@@ -1,9 +1,10 @@
 from typing import Sequence, Any, Type, Coroutine, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.params import Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.status import HTTP_404_NOT_FOUND
 
 from auth.dependensies import get_current_admin_user
 from core.models import User
@@ -65,7 +66,13 @@ async def get_user_by_username(
         username: str,
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    return await users_crud.get_user_by_username(session=session, username=username)
+    user = await users_crud.get_user_by_username(session=session, username=username)
+    if user:
+        return user
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND,
+        detail=f'user with username {username} not found!'
+    )
 
 
 

@@ -97,10 +97,6 @@ async def get_user_by_username(
     user = result.one_or_none()
     if user:
         return user
-    raise HTTPException(
-        status_code=HTTP_404_NOT_FOUND,
-        detail=f'user with username {username} not found!'
-    )
 
 
 async def create_user_profile(
