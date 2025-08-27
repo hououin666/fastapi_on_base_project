@@ -1,3 +1,5 @@
+import json
+
 from fastapi import Depends, HTTPException, APIRouter
 from fastapi.params import Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -32,10 +34,12 @@ def auth_user_issue_jwt(
         response: Response,
         user: UserSchema = Depends(validate_user),
 ):
+    cart = {}
     jwt_payload = {
         'sub': str(user.id),
         'username': user.username,
         'password': str(user.password),
+        'cart': dict(),
         'email': user.email,
         'active': user.active,
     }
@@ -43,6 +47,7 @@ def auth_user_issue_jwt(
         payload=jwt_payload,
     )
     response.set_cookie(key='users_access_token', value=token, httponly=True)
+    response.set_cookie(key='cart', value=json.dumps(cart), httponly=True, )
     return TokenInfo(
         access_token=token,
     )
